@@ -1,4 +1,4 @@
-# AKIB: Asisten Karya Ilmiah Birokrasi 🤖🇮🇩
+# AKIB: Asisten Karya Ilmiah Birokrasi
 
 AKIB adalah chatbot cerdas berbasis Telegram yang dirancang khusus untuk membantu Aparatur Sipil Negara (ASN) dalam menyusun karya tulis ilmiah (Jurnal, Policy Brief, Artikel). Bot ini dibangun menggunakan **n8n** dan ditenagai oleh **Google Gemini AI**.
 
