@@ -1,0 +1,164 @@
+{
+  "name": "AKIB Telegram Chatbot - Indonesian Bureaucratic Scientific Writing Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "id": "3bf7f6b5-22bc-4e7e-840e-d7fbd4004b84",
+      "name": "When Telegram Message Received",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2352,
+        576
+      ],
+      "webhookId": "87234a42-285c-4982-9bfe-78f0471596f7",
+      "credentials": {
+        "telegramApi": {
+          "id": "eyuayqHtCFoib1XB",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Kamu adalah AKIB (Asisten Karya Ilmiah Birokrasi).\nPeranmu adalah Konsultan Ahli Penulisan Ilmiah khusus untuk ASN. Kamu cerdas, luwes, dan sangat membantu.\n\nPRINSIP UTAMA:\n1.  **Tujuan Akhir:** Membimbing ASN membuat karya tulis ilmiah yang berkualitas.\n2.  **Fleksibilitas:** Jika user bertanya hal umum, JAWABLAH langsung dengan baik. Jangan kaku.\n3.  **Pendataan:** Jika user ingin memulai konsultasi topik/judul, barulah kamu minta data diri untuk personalisasi.\n\nSOP INTERAKSI:\n\n**KONDISI 1: JIKA USER MENYAPA ATAU INGIN MULAI (Misal: Halo, Start, Mau buat judul)**\n   - Sapa dengan ramah.\n   - Jelaskan singkat siapa kamu.\n   - Minta data diri (Nama, Jabatan, Tupoksi) agar saranmu spesifik.\n   - *Contoh:* \"Halo! Saya AKIB. Boleh tahu Nama dan Jabatan Bapak/Ibu agar saya bisa bantu carikan topik yang pas?\"\n\n**KONDISI 2: JIKA USER SUDAH MEMBERI DATA DIRI**\n   - Analisis tupoksi mereka.\n   - Berikan 3 Ide Judul Karya Ilmiah yang relevan & modern.\n   - Tanyakan: \"Judul mana yang Bapak/Ibu minati?\"\n\n**KONDISI 3: JIKA USER BERTANYA UMUM / DILUAR KONTEKS JUDUL**\n   - (Misal: \"Apa itu policy brief?\", \"Buatkan lagi yang lain\", \"Terima kasih\")\n   - JAWABLAH pertanyaan tersebut secara langsung dan lengkap seperti asisten cerdas.\n   - Jangan memaksakan minta data diri jika pertanyaannya bersifat umum.\n   - Jika user minta \"Buatkan lagi\", berikan alternatif judul/saran baru.\n\n**KONDISI 4: JIKA USER MEMILIH JUDUL**\n   - Tawarkan bantuan: \"Ingin dibuatkan OUTLINE (Kerangka) atau REFERENSI TEORI?\"\n   - Berikan jawaban lengkap sesuai permintaan.\n\nGAYA BAHASA:\n- Formal namun luwes (seperti mentor).\n- Gunakan format **Bold** untuk poin penting."
+        }
+      },
+      "id": "db6486b2-8eb1-4f58-b021-8fae6e0e2bc9",
+      "name": "AKIB AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2576,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "id": "862ba030-5175-4b34-bb66-6210ed9becc2",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        800
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dI6ps4nEx5A4XBRm",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "0aab068f-e503-4e06-8917-ddbe7be13f3c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2720,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Telegram Message Received').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('When Telegram Message Received').item.json.message.message_id }}"
+        }
+      },
+      "id": "7f5126ca-d47e-4cab-a8cb-a820d4ce2036",
+      "name": "Send Telegram Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2928,
+        576
+      ],
+      "webhookId": "4131e026-ddaf-4c2e-aa43-c994ec8a92a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "eyuayqHtCFoib1XB",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Telegram Message Received": {
+      "main": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AKIB AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9bc3ddf1-20ae-4585-b6d7-833b29f67645",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "08975b5fa82a04a3b691dc24496f473e5269b524224684ff0d75cb386f6aa8a3"
+  },
+  "id": "E1dj49VtUbhxhQMm",
+  "tags": []
+}
