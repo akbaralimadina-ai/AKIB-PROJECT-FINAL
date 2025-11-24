@@ -22,7 +22,7 @@ AKIB adalah chatbot cerdas berbasis Telegram yang dirancang khusus untuk membant
    - Telegram Bot Token
    - Google Gemini API Key
 
-# AKIB-PROJECT-FINAL2
+# AKIB-PROJECT-FINAL UNTUK PENGEMBANGAN VERSI WEB
 Drive untuk Project Final Akbar Ali Madina REAENG1UZVNM
 # 🤖 Gemini 2.0 Flash Chatbot — Simple Version
 Chatbot sederhana berbasis **Gemini 2.0 Flash**, dapat dijalankan melalui **Google Colab** dan diakses publik memakai **Cloudflare Tunnel**.
