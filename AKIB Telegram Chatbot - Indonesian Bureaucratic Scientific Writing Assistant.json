@@ -1,0 +1,245 @@
+{
+  "name": "AKIB Telegram Chatbot - Indonesian Bureaucratic Scientific Writing Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "id": "3bf7f6b5-22bc-4e7e-840e-d7fbd4004b84",
+      "name": "When Telegram Message Received",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        336
+      ],
+      "webhookId": "87234a42-285c-4982-9bfe-78f0471596f7",
+      "credentials": {
+        "telegramApi": {
+          "id": "eyuayqHtCFoib1XB",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When Telegram Message Received').item.json.message.text }}",
+        "options": {
+          "systemMessage": "Kamu adalah AKIB (Asisten Karya Ilmiah Birokrasi).\nPeranmu adalah Konsultan Ahli bagi ASN untuk menyusun karya tulis ilmiah (Artikel, Jurnal, Policy Brief, Proyek Perubahan) yang berkualitas dan berbasis data terkini.\n\nAKSES ALAT:\nKamu memiliki akses ke internet melalui 'Tavily Search'.\nWAJIB GUNAKAN ALAT INI setiap kali memberikan rekomendasi isu, regulasi, atau data terbaru. Jangan hanya mengandalkan ingatanmu.\n\nIKUTI SOP KONSULTASI BERIKUT (JANGAN MELOMPAT):\n\n### TAHAP 1: PENDATAAN (Awal Percakapan)\nJika user menyapa (Halo, Selamat Pagi, Start), sapa dengan ramah dan profesional.\nLalu minta data diri mereka dengan format:\n- Nama Lengkap\n- Jabatan Saat Ini\n- Tugas & Fungsi (Tupoksi) Utama\n\n### TAHAP 2: RISET & REKOMENDASI (Otomatis)\nSetelah user memberikan data Tupoksi:\n1. Panggil user dengan \"Bapak/Ibu [Nama]\".\n2. LAKUKAN PENCARIAN (Use Tool) dengan kata kunci: \"Isu strategis terbaru [Tupoksi User] di birokrasi Indonesia 2024-2025\" atau \"Masalah terkini terkait [Tupoksi User]\".\n3. Berdasarkan hasil pencarianmu, berikan respon:\n   - **3 Isu Strategis Terkini** (Sebutkan sumber beritanya/regulasinya).\n   - **3 Rekomendasi Judul Karya Ilmiah** yang solutif untuk mengatasi isu tersebut.\n   - **1 Ringkasan Singkat (Abstrak)** dari ide judul yang paling kamu rekomendasikan.\n4. Akhiri dengan: \"Judul mana yang menarik minat Bapak/Ibu untuk kita kembangkan?\"\n\n### TAHAP 3: PENGEMBANGAN\nSetelah user memilih judul:\n1. Tawarkan bantuan spesifik: \"Baik, judul yang menarik. Apakah Bapak/Ibu ingin saya buatkan **OUTLINE (Kerangka Tulisan)** atau mencarikan **REFERENSI TEORI**?\"\n2. Jika diminta Outline: Buatkan struktur lengkap (Pendahuluan, Masalah, Analisis, Rekomendasi).\n3. Jika diminta Referensi: Gunakan Tool Pencarian untuk mencari jurnal/buku terkait dan berikan link/sitasi.\n\nGAYA BAHASA:\n- Formal, Birokratis, namun Mengayomi (seperti Widyaiswara Senior).\n- Gunakan formatting **Bold** untuk poin penting agar mudah dibaca di HP."
+        }
+      },
+      "id": "db6486b2-8eb1-4f58-b021-8fae6e0e2bc9",
+      "name": "AKIB AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        736,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "862ba030-5175-4b34-bb66-6210ed9becc2",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        560
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "dI6ps4nEx5A4XBRm",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 10
+      },
+      "id": "0aab068f-e503-4e06-8917-ddbe7be13f3c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to search the internet for current information, news, regulations, and research data. Always use this tool when asked about recent issues, policies, or data.",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_key\": \"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\",\n  \"query\": \"={{ $fromAI('search_query', 'The search query to look up on the internet', 'string') }}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5\n}",
+        "options": {}
+      },
+      "id": "fe831aac-1f70-4176-94e1-2696cca75d34",
+      "name": "Tavily Search API Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        928,
+        560
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pNcMHbblY8B7RPZ7",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Telegram Message Received').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "reply_to_message_id": "={{ $('AKIB AI Agent').item.json.output }}"
+        }
+      },
+      "id": "7f5126ca-d47e-4cab-a8cb-a820d4ce2036",
+      "name": "Send Telegram Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1136,
+        336
+      ],
+      "webhookId": "4131e026-ddaf-4c2e-aa43-c994ec8a92a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "eyuayqHtCFoib1XB",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "When Telegram Message Received": [
+      {
+        "json": {
+          "update_id": 476337767,
+          "message": {
+            "message_id": 26,
+            "from": {
+              "id": 887195815,
+              "is_bot": false,
+              "first_name": "Akbar Ali",
+              "last_name": "Madina",
+              "username": "AbuKhuzaid",
+              "language_code": "en"
+            },
+            "chat": {
+              "id": 887195815,
+              "first_name": "Akbar Ali",
+              "last_name": "Madina",
+              "username": "AbuKhuzaid",
+              "type": "private"
+            },
+            "date": 1763910753,
+            "text": "/start",
+            "entities": [
+              {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Telegram Message Received": {
+      "main": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily Search API Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AKIB AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AKIB AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4f61568e-c64e-4291-8770-4155dff381fb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "08975b5fa82a04a3b691dc24496f473e5269b524224684ff0d75cb386f6aa8a3"
+  },
+  "id": "E1dj49VtUbhxhQMm",
+  "tags": []
+}
